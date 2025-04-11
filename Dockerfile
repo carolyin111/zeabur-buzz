@@ -9,12 +9,15 @@ RUN apt-get update && apt-get install -y \
     libportaudio2 \
     && rm -rf /var/lib/apt/lists/*
 
+# 更新 pip 到最新版本
+RUN pip install --no-cache-dir --upgrade pip
+
 # 設定工作目錄
 WORKDIR /app
 
 # 安裝 Python 依賴
 RUN pip install --no-cache-dir \
-    buzz-whisper==3.1.8 \
+    buzz-captions==1.2.0 \
     fastapi==0.115.0 \
     uvicorn==0.30.6
 
