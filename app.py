@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
-from buzz import transcribe
 import os
+import subprocess
 
 app = FastAPI()
 
@@ -8,45 +8,35 @@ app = FastAPI()
 async def health_check():
     return {"status": "healthy"}
 
-@app.post("/transcribe")
-async def transcribe_audio(file_path: str):
+@app.post("/process")
+async def process_file(file_path: str):
+    """
+    處理共享卷中的 MP4 檔案，轉為 MP3
+    輸入：file_path（例如 /data/input/meeting.mp4）
+    輸出：MP3 檔案（例如 /data/output/meeting.mp3）
+    """
     if not os.path.exists(file_path):
         raise HTTPException(status_code=400, detail="File not found")
 
-    audio_path = file_path.replace(".mp4", ".mp3")
+    # 確保輸出目錄存在
+    output_dir = "/data/output"
+    os.makedirs(output_dir, exist_ok=True)
+
+    # 設定輸出路徑
+    output_path = os.path.join(output_dir, os.path.basename(file_path).replace(".mp4", ".mp3"))
+
+    # 使用 FFmpeg 轉換
     try:
-        os.system(f"ffmpeg -i {file_path} -vn -acodec mp3 -b:a 128k {audio_path}")
+        subprocess.run([
+            "ffmpeg", "-i", file_path, "-vn", "-acodec", "mp3", "-b:a", "128k", output_path
+        ], check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(status_code=500, detail=f"FFmpeg error: {e.stderr}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"FFmpeg error: {str(e)}")
-
-    try:
-        result = transcribe(
-            file_path=audio_path,
-            model_type="whispercpp",
-            model_size="small",
-            language="zh",
-            task="transcribe",
-            srt=True,
-            vtt=True
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Transcribe error: {str(e)}")
-
-    transcript = result["text"]
-    srt_path = audio_path.replace(".mp3", ".srt")
-    vtt_path = audio_path.replace(".mp3", ".vtt")
-
-    with open(srt_path, "r", encoding="utf-8") as f:
-        srt_content = f.read()
-    with open(vtt_path, "r", encoding="utf-8") as f:
-        vtt_content = f.read()
-
-    for path in [audio_path, srt_path, vtt_path]:
-        if os.path.exists(path):
-            os.remove(path)
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
     return {
-        "transcript": transcript,
-        "srt": srt_content,
-        "vtt": vtt_content
+        "message": "Processing complete",
+        "input": file_path,
+        "output": output_path
     }
