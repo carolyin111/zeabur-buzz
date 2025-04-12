@@ -1,7 +1,5 @@
 FROM n8nio/n8n:1.86.1
 
-USER root
-
 # 安裝基本依賴
 RUN apk update && apk add --no-cache \
     ffmpeg \
@@ -11,20 +9,28 @@ RUN apk update && apk add --no-cache \
     wget \
     build-base \
     python3-dev \
-    linux-headers
+    linux-headers \
+    gcc \
+    g++ \
+    musl-dev \
+    libffi-dev \
+    openssl-dev \
+    libstdc++ \
+    && rm -rf /var/cache/apk/*
 
 # 安裝 Python 依賴
 RUN pip3 install --no-cache-dir --break-system-packages \
     numpy \
     setuptools-rust \
-    https://github.com/guillaumekln/faster-whisper/archive/refs/heads/master.zip
+    ctranslate2>=4.0,<5 \
+    faster-whisper==1.0.3
 
 # 設置工作目錄
 WORKDIR /root/.n8n
 
-# 設置通用環境變數，支援 Python、FFmpeg 和 faster-whisper
+# 設置通用環境變數，支援 Python 和 FFmpeg
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/root/.n8n:/usr/local/lib/python3.11/site-packages \
+    PYTHONPATH=/root/.n8n:/usr/local/lib/python3.12/site-packages \
     PATH=/usr/local/bin:/usr/bin:/bin:/root/.n8n \
     TZ=Asia/Taipei
 
@@ -35,4 +41,4 @@ EXPOSE 5678
 USER node
 
 # 使用原始的啟動命令
-CMD ["n8n", "start"]
+CMD ["n8n"]
