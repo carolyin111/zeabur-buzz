@@ -13,8 +13,13 @@ RUN apk update && apk add --no-cache \
     python3-dev \
     linux-headers
 
+# 建立並使用虛擬環境
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 # 安裝 Python 依賴
-RUN pip3 install --no-cache-dir torch torchaudio openai-whisper
+RUN pip3 install --upgrade pip && \
+    pip3 install --no-cache-dir torch torchaudio openai-whisper
 
 # 下載 Whisper 模型
 RUN python3 -c "import whisper; whisper.load_model('small')"
