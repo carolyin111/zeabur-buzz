@@ -2,20 +2,21 @@ FROM n8nio/n8n:1.86.1
 
 USER root
 
-# 安裝系統依賴
-RUN apt-get update && apt-get install -y \
+# 安裝系統依賴 (使用 Alpine 的 apk 而非 apt-get)
+RUN apk update && apk add --no-cache \
     ffmpeg \
     python3 \
-    python3-pip \
+    py3-pip \
     git \
     wget \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    build-base \
+    python3-dev \
+    linux-headers
 
 # 安裝 Python 依賴
 RUN pip3 install --no-cache-dir torch torchaudio openai-whisper
 
-# 下載 Whisper 模型 (選擇您需要的模型大小，例如 base、small、medium、large)
+# 下載 Whisper 模型
 RUN python3 -c "import whisper; whisper.load_model('small')"
 
 # 設置工作目錄
