@@ -53,4 +53,4 @@ RUN useradd -ms /bin/sh node && chown -R node:node /root/.n8n
 USER node
 
 # 使用 n8n 的啟動命令
-CMD ["n8n"]
+CMD ["n8n", "start"]
