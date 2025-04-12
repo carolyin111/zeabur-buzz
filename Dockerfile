@@ -22,22 +22,11 @@ RUN pip3 install --no-cache-dir --break-system-packages \
 # 設置工作目錄
 WORKDIR /root/.n8n
 
-# 設置環境變數，與 YAML 配置一致
-ENV DB_TYPE=postgresdb \
-    DB_POSTGRESDB_DATABASE=${POSTGRES_DATABASE} \
-    DB_POSTGRESDB_HOST=${POSTGRES_HOST} \
-    DB_POSTGRESDB_PORT=${POSTGRES_PORT} \
-    DB_POSTGRESDB_USER=${POSTGRES_USERNAME} \
-    DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD} \
-    GENERIC_TIMEZONE=Asia/Taipei \
-    N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true \
-    N8N_DIAGNOSTICS_ENABLED=false \
-    N8N_ENCRYPTION_KEY=${PASSWORD} \
-    N8N_HOST=${ZEABUR_WEB_DOMAIN} \
-    N8N_PORT=5678 \
-    N8N_RUNNERS_ENABLED=true \
-    NODE_ENV=production \
-    WEBHOOK_URL=${ZEABUR_WEB_URL}
+# 設置通用環境變數，支援 Python、FFmpeg 和 faster-whisper
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/root/.n8n:/usr/local/lib/python3.11/site-packages \
+    PATH=/usr/local/bin:/usr/bin:/bin:/root/.n8n \
+    TZ=Asia/Taipei
 
 # 暴露 n8n 端口
 EXPOSE 5678
